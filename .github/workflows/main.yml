@@ -12,11 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Diperbarui ke v4 untuk menghilangkan warning Node.js
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
+    # 2. Diperbarui ke v5 untuk menghilangkan warning Node.js
     - name: Set Up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -25,14 +27,24 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
 
+    # Tambahan: Mengarahkan pip install ke folder jika requirements.txt juga di dalam folder
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install -r **/requirements.txt; fi
 
     - name: Generate kunci.json dari Secrets
       run: |
         echo '${{ secrets.GCP_KUNCI_JSON }}' > kunci.json
 
+    # 3. SOLUSI ERROR: Menemukan skrip Python secara otomatis di mana pun posisinya
     - name: Jalankan Skrip Scraping
-      run: python scraping.py
+      run: |
+        FILE_PATH=$(find . -name "scraping.py" -not -path "*/.*" | head -n 1)
+        if [ -z "$FILE_PATH" ]; then
+          echo "Error: file scraping.py tidak ditemukan di repositori ini!"
+          exit 1
+        else
+          echo "Menjalankan file yang ditemukan di: $FILE_PATH"
+          python "$FILE_PATH"
+        fi

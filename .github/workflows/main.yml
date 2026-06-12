@@ -36,7 +36,7 @@ jobs:
 
     - name: Generate kunci.json dari Secrets
       run: |
-        echo '${{ secrets.GCP_KUNCI_JSON }}' > kunci.json
+        echo '${{ secrets.GCP_SA_KEY }}' > kunci.json
 
     - name: Jalankan Skrip Scraping
       run: |

@@ -2,11 +2,9 @@ name: Otomatisasi Scraping DO
 
 on:
   schedule:
-    # Berjalan otomatis setiap 10 menit (Senin - Sabtu)
-    # Catatan: Waktu GitHub menggunakan UTC (WIB -7 jam)
-    - cron: '*/10 * * * 1-6'
+    # Berjalan setiap 10 menit dari jam 08:00 - 17:50 WIB (01:00 - 10:50 UTC), Senin - Sabtu
+    - cron: '*/10 1-10 * * 1-6'
   workflow_dispatch: # Tombol manual jika ingin tes jalan langsung
-
 # SOLUSI WARNING NODE.js 20: Memaksa semua actions menggunakan Node.js 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'

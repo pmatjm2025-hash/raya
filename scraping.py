@@ -27,16 +27,21 @@ def run_full_sync(akun, is_first_account):
     waktu_log = sekarang.strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n[{waktu_log}] Memulai sinkronisasi untuk akun: {akun['email']}...")
 
-    # KONEKSI GOOGLE SHEET MENGGUNAKAN GITHUB SECRETS
+   # KONEKSI GOOGLE SHEET MENGGUNAKAN FILE KUNCI.JSON
     try:
         SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         
-        # Mengambil kredensial dari Github Secret berupa String JSON
-        gcs_secret = os.environ.get("GCP_SA_KEY")
-        if not gcs_secret:
-            raise Exception("Environment variable 'GCP_SA_KEY' tidak ditemukan!")
+        # Langsung baca file kunci.json yang dibuat oleh GitHub Actions
+        if not os.path.exists("kunci.json"):
+            raise Exception("File 'kunci.json' tidak ditemukan di direktori!")
             
-        creds_dict = json.loads(gcs_secret)
+        with open("kunci.json") as f:
+            creds_dict = json.load(f)
+            
+        # Solusi membersihkan karakter newline \n yang berpotensi rusak di GitHub Secrets
+        if "private_key" in creds_dict:
+            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
         client = gspread.authorize(creds)
         
@@ -44,7 +49,7 @@ def run_full_sync(akun, is_first_account):
         sheet = ss.worksheet(NAMA_TAB_TUNGGAL)
     except Exception as e:
         print(f"Gagal koneksi Sheets untuk {akun['email']}: {e}")
-        return
+        raise e  # <--- GANTI 'return' MENJADI 'raise e' agar jika gagal, GitHub Actions Anda ikut memerah (gagal) sehingga Anda tahu ada masalah.
 
     # SETTING CHROME UNTUK LINGKUNGAN LINUX/GITHUB ACTIONS
     options = webdriver.ChromeOptions()
